@@ -169,4 +169,4 @@ const PromiseFTP = require("promise-ftp");
       }).catch(reject);
     });
   }
-});
+})();
