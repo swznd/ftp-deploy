@@ -17,8 +17,8 @@ const PromiseFTP = require("promise-ftp");
     const user = core.getInput('user');
     const password = core.getInput('password');
     const secure = core.getInput('secure');
-    const localPath = core.getInput('local_path');
-    const remotePath = (core.getInput('remote_path') || '').trim('/');
+    const localPath = (core.getInput('local_path') || '').trim('/').trim();
+    const remotePath = (core.getInput('remote_path') || '').trim('/').trim();
     const ignore = (core.getInput('ignore') || '').split(',').filter(Boolean);
     const remoteRev = core.getInput('remote_revision');
     const payload = github.context.payload;
@@ -72,13 +72,20 @@ const PromiseFTP = require("promise-ftp");
   
     const filterFile = file => {
       if (file === '') return false;
-      if (['', './', '.'].indexOf(localPath) !== -1 && !file.startsWith(localPath)) return false;
+      if (['', './', '.'].indexOf(localPath) === -1 && !file.startsWith(localPath)) return false;
       if (ignore.length && micromatch.isMatch(file, ignore)) return false;
       return true;
     }
 
-    const filteredModified = modified.split("\n").filter(filterFile);
-    const filteredDeleted = deleted.split("\n").filter(filterFile);
+    const replacePath = file => {
+      if (localPath == '') return file;
+
+      const start = new RegExp('^/' + localPath);
+      return file.replace(start, '');
+    }
+
+    const filteredModified = modified.split("\n").filter(filterFile).map(replacePath);
+    const filteredDeleted = deleted.split("\n").filter(filterFile).map(replacePath);
   
     if (filteredModified.length === 0 && filteredDeleted.length === 0) {
       console.log('No Changes');
