@@ -52,8 +52,6 @@ const PromiseFTP = require("promise-ftp");
       });
       start = await remoteHash;
     }
-
-    start = start.trim();
     
     console.log('Remote Revision:', start.toString());
 
@@ -61,9 +59,11 @@ const PromiseFTP = require("promise-ftp");
     
     if (start == '') {
       console.log('Remote revision empty, get from initial commit');
-      start = (await git('hash-object', '-t', 'tree', '/dev/null')).trim();
+      start = await git('hash-object', '-t', 'tree', '/dev/null');
     }
     
+    start = start.trim();
+
     console.log('Comparing', `${start}..${end}`);
 
     const modified = await git('diff', '--name-only', '--diff-filter=AM', '-M100%', start, end);
