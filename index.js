@@ -9,6 +9,7 @@ const PromiseFTP = require("promise-ftp");
 (async () => {
   let client = new PromiseFTP();
   let connected = false;
+  const deletedLogs = { dirs: [], files: [] };
 
   try {
     const host = core.getInput('host');
@@ -21,7 +22,6 @@ const PromiseFTP = require("promise-ftp");
     const ignore = (core.getInput('ignore') || '').split(',').filter(Boolean);
     const remoteRev = core.getInput('remote_revision');
     const payload = github.context.payload;
-    const deletedLogs = { dirs: [], files: [] };
 
     await client.connect({
       host: host,
