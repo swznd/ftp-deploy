@@ -72,7 +72,7 @@ jobs:
 
 ### Fast Action
 
-The `.revision` file need can be accessed via web
+It will fetch and checkout only the changes, the `.revision` file need can be accessed via web
 
 ```
 name: deploy
@@ -89,9 +89,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # fetch revision
     - id: fetch_revision
       name: fetch revision
       run: echo ::set-output name=revision::$(curl -m 15 https://example.com/.revision)
+
+      # check how much commits ahead via github API
     - id: get_total_commit_ahead
       name: fetch total commits count
       uses: octokit/request-action@v2.x
@@ -103,17 +106,21 @@ jobs:
         head: ${{ github.sha }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - id: parse_total_commit_ahead
+    - id: parse_total_commit_ahead 
       uses: gr2m/get-json-paths-action@v1.x
       if: steps.fetch_revision.outputs.revision != ''
       with:
         json: ${{ steps.get_total_commit_ahead.outputs.data }}
         total_commits: "total_commits"
-    - name: set total_commit
-      run: "echo ::set-env name=TOTAL_COMMITS::$(( ${{ steps.parse_total_commit_ahead.outputs.total_commits }} + 1 ))"
+
+      # update TOTAL_COMMIT variable
+    - name: set total_commit # set total commit to env
+      run: "echo ::set-env name=TOTAL_COMMITS::$(( ${{ steps.parse_total_commit_ahead.outputs.total_commits }} + 1 ))" # add one commit back, so it can compare from remote revision
+
     - uses: actions/checkout@v2
       with:
-        fetch-depth: ${{ env.TOTAL_COMMITS }}
+        fetch-depth: ${{ env.TOTAL_COMMITS }} # fetch with total commit
+
     - name: upload
       uses: swznd/ftp-deploy@master
       with:
