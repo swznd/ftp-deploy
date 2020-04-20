@@ -21,6 +21,7 @@ const PromiseFTP = require("promise-ftp");
     const ignore = (core.getInput('ignore') || '').split(',').filter(Boolean);
     const remoteRev = core.getInput('remote_revision');
     const payload = github.context.payload;
+    const deleted = { dirs: [], files: [] };
 
     await client.connect({
       host: host,
@@ -79,45 +80,46 @@ const PromiseFTP = require("promise-ftp");
     const filteredModified = modified.split("\n").filter(filterFile);
     const filteredDeleted = deleted.split("\n").filter(filterFile);
   
-    console.log('fiteredModified', filteredModified, 'filteredDeleted', filteredDeleted);
-    // if (filteredModified.length === 0 && filteredDeleted.length === 0) {
-    //   console.log('No Changes');
-    // }
-    // else {
-    //   for (let i = 0; i < filteredDeleted.length; i++) {
-    //     const file = filteredDeleted[i];
-    //     const remoteFile = remotePath + '/' + file;
-    //     const checkRemoteFile = await isExists(remoteFile);
+    if (filteredModified.length === 0 && filteredDeleted.length === 0) {
+      console.log('No Changes');
+    }
+    else {
+      for (let i = 0; i < filteredDeleted.length; i++) {
+        const file = filteredDeleted[i];
+        const remoteFile = remotePath + '/' + file;
+        const checkRemoteFile = await isExists(remoteFile);
 
-    //     if ( ! checkRemoteFile) continue;
+        if ( ! checkRemoteFile) continue;
         
-    //     if (checkRemoteFile == 'd') {
-    //       await client.rmdir(remoteFile, true);
-    //     }
-    //     else {
-    //       await client.delete(remoteFile);
-    //     }
-    //     console.log('Deleted: ' + file);
-    //   }
+        if (checkRemoteFile == 'd') {
+          await client.rmdir(remoteFile, true);
+          deleted.dirs.push(remoteFile);
+        }
+        else {
+          await client.delete(remoteFile);
+          deleted.files.push(remoteFile);
+        }
+        console.log('Deleted: ' + file);
+      }
 
-    //   for (let i = 0; i < filteredModified.length; i++) {
-    //     const file = filteredModified[i];
-    //     const remoteFile = remotePath + '/' + file;
-    //     const remoteFilePath = path.dirname(remoteFile);
-    //     const checkRemoteFilePath = await isExists(remoteFilePath);
+      for (let i = 0; i < filteredModified.length; i++) {
+        const file = filteredModified[i];
+        const remoteFile = remotePath + '/' + file;
+        const remoteFilePath = path.dirname(remoteFile);
+        const checkRemoteFilePath = await isExists(remoteFilePath);
         
-    //     if (checkRemoteFilePath != 'd') {
-    //       if (checkRemoteFilePath) {
-    //         await client.delete(remoteFilePath);
-    //       }
+        if (checkRemoteFilePath != 'd') {
+          if (checkRemoteFilePath) {
+            await client.delete(remoteFilePath);
+          }
 
-    //       await client.rmdir(remoteFilePath, true);
-    //     }
+          await client.mkdir(remoteFilePath, true);
+        }
 
-    //     await client.put(file, remoteFile);
-    //     console.log('Uploaded: ' + file);
-    //   }
-    // }
+        await client.put(file, remoteFile);
+        console.log('Uploaded: ' + file);
+      }
+    }
 
     await client.put(Readable.from(end), remotePath + '/.revision');
     client.end();
@@ -159,6 +161,14 @@ const PromiseFTP = require("promise-ftp");
     return new Promise((resolve, reject) => {
       const filePath = path.dirname(file);
       const fileName = path.basename(file);
+
+      for (let dd of deleted.dirs) {
+        if (filePath.startsWith(dd)) return resolve(false);
+      }
+
+      for (let df of deleted.files) {
+        if (fileName == df) return resolve(false);
+      }
 
       client.listSafe(filePath).then(lists => {
         for(let list of lists) {
