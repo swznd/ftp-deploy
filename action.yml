@@ -1,5 +1,5 @@
-name: 'FTP Deploy with Respect'
-description: 'FTP Deploy with respect last revision on the remote server'
+name: 'Fast FTP Deploy'
+description: 'Upload only changes to FTP Server'
 branding:
   icon: 'upload-cloud'
   color: 'black'
