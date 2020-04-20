@@ -4,10 +4,10 @@ const exec = require('@actions/exec');
 const path = require('path');
 const micromatch = require('micromatch');
 const { Readable, Transform } = require('stream');
-const ftp = require("promise-ftp")
+const PromiseFTP = require("promise-ftp")
 
 (async () => {
-  let client = new ftp();
+  let client = new PromiseFTP;
   let connected = false;
 
   try {
