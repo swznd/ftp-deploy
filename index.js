@@ -3,7 +3,7 @@ const github = require('@actions/github');
 const exec = require('@actions/exec');
 const path = require('path');
 const micromatch = require('micromatch');
-const { Readable, Transform } = require('stream');
+const { Readable } = require('stream');
 const PromiseFTP = require("promise-ftp");
 
 (async () => {
@@ -37,20 +37,18 @@ const PromiseFTP = require("promise-ftp");
 
     let start = '';
 
-    if (remoteRev == '') {
+    if (remoteRev != '') {
       start = remoteRev;
     }
-    else {
+    else if (await isExists(remotePath + '/.revision')) {
       console.log('getting last revision from server');
-      const st = new Transform();
-      st._transform = function (chunk,encoding,done)  {
-        this.push(chunk)
-        done();
-      };
-      await client.downloadTo(st, remotePath + '/.revision');
+      const st = await client.get(remotePath + '/.revision');
       const remoteHash = new Promise((resolve, reject) => {
-        st.on('end', resolve(st.read()));
+        const chunks = [];
+        st.on('data', chunk => chunks.push(chunk))
         st.on('error', reject)
+        st.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+        st.resume();
       });
       start = await remoteHash;
     }
@@ -161,7 +159,7 @@ const PromiseFTP = require("promise-ftp");
       const fileName = path.basename(file);
 
       client.listSafe(filePath).then(lists => {
-        for(list in lists) {
+        for(let list of lists) {
           if (list.name == fileName) {
             resolve(list.type);
             break;
