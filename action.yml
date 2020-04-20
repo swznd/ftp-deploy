@@ -1,0 +1,41 @@
+name: 'FTP Deploy with Respect'
+description: 'FTP Deploy with respect last revision on the remote server'
+branding:
+  icon: 'upload-cloud'
+  color: 'black'
+inputs:
+  host: 
+    description: 'Remote Host'
+    required: true
+    default: ''
+  port:
+    description: 'Remote Port'
+    required: false
+    default: '21'
+  user:
+    description: 'User'
+    required: true
+    default: ''
+  password:
+    descritpon: 'Password'
+    required: false
+    default: ''
+  secure:
+    description: 'Secure Connection'
+    required: false
+    default: ''
+  local_path:
+    description: 'Local Repository Path'
+    required: false
+    default: ''
+  remote_path:
+    description: 'Remote Path'
+    required: true
+    default: ''
+  ignore:
+    description: 'Ignore file/folders by glob matching'
+    required: false
+    default: ''
+runs:
+  using: 'node12'
+  main: 'index.js'
