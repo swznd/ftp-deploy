@@ -60,7 +60,7 @@ jobs:
         with:
           host: ${{ secrets.IP_PROD_SERVER }}
           user: username
-          private_key: ${{ secrets.FTP_PASSWORD }}
+          password: ${{ secrets.FTP_PASSWORD }}
           remote_path: /
           ignore: .github/**
 ```
