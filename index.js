@@ -21,7 +21,7 @@ const PromiseFTP = require("promise-ftp");
     const ignore = (core.getInput('ignore') || '').split(',').filter(Boolean);
     const remoteRev = core.getInput('remote_revision');
     const payload = github.context.payload;
-    const deleted = { dirs: [], files: [] };
+    const deletedLogs = { dirs: [], files: [] };
 
     await client.connect({
       host: host,
@@ -93,11 +93,11 @@ const PromiseFTP = require("promise-ftp");
         
         if (checkRemoteFile == 'd') {
           await client.rmdir(remoteFile, true);
-          deleted.dirs.push(remoteFile);
+          deletedLogs.dirs.push(remoteFile);
         }
         else {
           await client.delete(remoteFile);
-          deleted.files.push(remoteFile);
+          deletedLogs.files.push(remoteFile);
         }
         console.log('Deleted: ' + file);
       }
@@ -162,11 +162,11 @@ const PromiseFTP = require("promise-ftp");
       const filePath = path.dirname(file);
       const fileName = path.basename(file);
 
-      for (let dd of deleted.dirs) {
+      for (let dd of deletedLogs.dirs) {
         if (filePath.startsWith(dd)) return resolve(false);
       }
 
-      for (let df of deleted.files) {
+      for (let df of deletedLogs.files) {
         if (fileName == df) return resolve(false);
       }
 
