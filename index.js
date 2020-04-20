@@ -17,8 +17,8 @@ const PromiseFTP = require("promise-ftp");
     const user = core.getInput('user');
     const password = core.getInput('password');
     const secure = core.getInput('secure');
-    const localPath = (core.getInput('local_path') || '').trim('/').trim();
-    const remotePath = (core.getInput('remote_path') || '').trim('/').trim();
+    const localPath = trimChar((core.getInput('local_path') || ''), '/').trim();
+    const remotePath = trimChar((core.getInput('remote_path') || ''), '/').trim();
     const ignore = (core.getInput('ignore') || '').split(',').filter(Boolean);
     const remoteRev = core.getInput('remote_revision');
     const payload = github.context.payload;
@@ -67,7 +67,7 @@ const PromiseFTP = require("promise-ftp");
 
     console.log('Comparing', `${start}..${end}`);
 
-    const modified = await git('diff', '--name-only', '--diff-filter=AM', '-M100%', start, end);
+    const modified = await git('diff', '--name-only', '--diff-filter=AMR', '-M100%', start, end);
     const deleted = await git('diff-tree', '--name-only', '--diff-filter=D', '-t', start, end);
   
     const filterFile = file => {
@@ -80,7 +80,7 @@ const PromiseFTP = require("promise-ftp");
     const replacePath = file => {
       if (localPath == '') return file;
 
-      const start = new RegExp('^/' + localPath);
+      const start = new RegExp('^' + localPath + '/');
       return file.replace(start, '');
     }
 
@@ -189,5 +189,14 @@ const PromiseFTP = require("promise-ftp");
         resolve(false);
       }).catch(reject);
     });
+  }
+
+  // https://stackoverflow.com/a/32516190
+  function trimChar(s, c) {
+    if (c === "]") c = "\\]";
+    if (c === "\\") c = "\\\\";
+    return s.replace(new RegExp(
+      "^[" + c + "]+|[" + c + "]+$", "g"
+    ), "");
   }
 })();
