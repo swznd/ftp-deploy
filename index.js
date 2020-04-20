@@ -27,11 +27,13 @@ const PromiseFTP = require("promise-ftp");
       port: port || 21,
       user: user,
       password: password,
-      secure: secure || true,
+      secure: secure,
       autoReconnect: true,
       preserveCwd: true
     });
     connected = true;
+
+    console.log('Connected. Current Working Directory:', await client.pwd());
 
     let start = '';
 
@@ -39,6 +41,7 @@ const PromiseFTP = require("promise-ftp");
       start = remoteRev;
     }
     else {
+      console.log('getting last revision from server');
       const st = new Transform();
       st._transform = function (chunk,encoding,done)  {
         this.push(chunk)
