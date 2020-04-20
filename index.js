@@ -7,7 +7,7 @@ const { Readable, Transform } = require('stream');
 const ftp = require("promise-ftp")
 
 (async () => {
-  let client = new ftp.Client();
+  let client = new ftp();
   let connected = false;
 
   try {
