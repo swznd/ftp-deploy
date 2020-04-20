@@ -110,6 +110,7 @@ const PromiseFTP = require("promise-ftp");
         
         if (checkRemoteFilePath != 'd') {
           if (checkRemoteFilePath) {
+            console.log('Conflict! it should be directory. Remove file: ' + remoteFilePath);
             await client.delete(remoteFilePath);
           }
 
@@ -170,7 +171,7 @@ const PromiseFTP = require("promise-ftp");
         if (fileName == df) return resolve(false);
       }
 
-      client.listSafe(filePath).then(lists => {
+      client.list(filePath).then(lists => {
         for(let list of lists) {
           if (list.name == fileName) {
             resolve(list.type);
