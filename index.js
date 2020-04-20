@@ -53,6 +53,8 @@ const PromiseFTP = require("promise-ftp");
       start = await remoteHash;
     }
 
+    start = start.trim();
+    
     console.log('Remote Revision:', start.toString());
 
     const end = payload.after;
